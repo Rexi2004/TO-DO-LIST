@@ -1,0 +1,132 @@
+------------------------------------------------------------------------------
+B.NO:244044                      FOOD DELIVERY APPLICATION
+Ex NO:5
+------------------------------------------------------------------------------
+
+#index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="styles.css">
+  <title>Food Delivery</title>
+</head>
+<body>
+  <header>
+    <h1>Food Delivery</h1>
+  </header>
+  <div class="menu">
+    <div class="item">
+      <img src="burger.jpg" alt="Burger">
+      <h2>Burger</h2>
+      <p>Delicious burger with all the fixings.</p>
+      <span class="price">$8.99</span>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <div class="item">
+      <img src="pizza.jpg" alt="Pizza">
+      <h2>Pizza</h2>
+      <p>Classic cheese pizza with tomato sauce.</p>
+      <span class="price">$10.99</span>
+      <button class="add-to-cart">Add to Cart</button>
+    </div>
+    <!-- Add more items here -->
+  </div>
+  <div class="cart">
+    <h2>Cart</h2>
+    <ul id="cart-items"></ul>
+    <h3>Total: $<span id="cart-total">0.00</span></h3>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>
+ #style.css
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+  }
+  
+  header {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px;
+  }
+  
+  .menu {
+    display: flex;
+    justify-content: space-around;
+    flex-wrap: wrap;
+    padding: 20px;
+  }
+  
+  .item {
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin: 10px;
+    text-align: center;
+    width: 200px;
+  }
+  
+  .item img {
+    max-width: 100%;
+  }
+  
+  .price {
+    font-weight: bold;
+  }
+  
+  .add-to-cart {
+    background-color: #333;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    cursor: pointer;
+  }
+  
+  .cart {
+    border: 1px solid #ddd;
+    padding: 10px;
+    position: fixed;
+    top: 350px;
+    right: 40px;
+    width: 250px;
+  }
+  
+#script.js
+const addToCartButtons = document.querySelectorAll('.add-to-cart');
+const cartItemsList = document.getElementById('cart-items');
+const cartTotal = document.getElementById('cart-total');
+
+let total = 0;
+const cart = {};
+
+addToCartButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const item = button.parentElement;
+    const itemName = item.querySelector('h2').textContent;
+    const itemPrice = parseFloat(item.querySelector('.price')
+.textContent.slice(1));
+
+    if (cart[itemName]) {
+      cart[itemName] += 1;
+    } else {
+      cart[itemName] = 1;
+    }
+
+    total += itemPrice;
+    updateCart();
+  });
+});
+
+function updateCart() {
+  cartItemsList.innerHTML = '';
+  for (const item in cart) {
+    const li = document.createElement('li');
+    li.textContent = `${item} x${cart[item]}`;
+    cartItemsList.appendChild(li);
+  }
+  cartTotal.textContent = total.toFixed(2);
+}

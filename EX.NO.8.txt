@@ -1,0 +1,95 @@
+------------------------------------------------------------------------------
+B.NO:244044    DEVELOP A SIMPLE DASHBOARD FOR PROJECT MANAAGEMENT SYSTEM
+Ex NO:8
+------------------------------------------------------------------------------
+
+server.js:
+// server.js
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.listen(5000, () => {
+ console.log('Server is running on port 5000');
+});
+*******************************************************************************
+TaskForm.js:
+// client/src/components/TaskForm.js
+import React, { useState } from 'react';
+const TaskForm = ({ addTask }) => {
+ const [taskName, setTaskName] = useState('');
+ const handleSubmit = (e) => {
+ e.preventDefault();
+ if (taskName.trim() !== '') {
+ addTask(taskName);
+ setTaskName(''); // Clear the input field
+ }
+ };
+ return (
+ <div className="task-form">
+ <h2>Add New Task</h2>
+ <form onSubmit={handleSubmit}>
+ <input
+ type="text"
+ placeholder="Task Name"
+ value={taskName}
+ onChange={(e) => setTaskName(e.target.value)}
+ />
+ <button type="submit">Add Task</button>
+ </form>
+ </div>
+ );
+};
+export default TaskForm;
+******************************************************************************
+TaskList.js:
+// client/src/components/TaskList.js
+import React from 'react';
+const TaskList = ({ tasks, updateStatus }) => {
+ return (
+ <div className="task-list">
+ <h2>Task List</h2>
+ <ul>
+ {tasks.map((task, index) => (
+ <li key={index}>
+ <span>{task.name}</span>
+ <div>
+ <span>Status: {task.status}</span>
+ <button onClick={() => updateStatus(index)}>
+ Update Status
+ </button>
+ </div>
+ </li>
+ ))}
+ </ul>
+ </div>
+ );
+};
+export default TaskList;
+******************************************************************************
+App.js:
+//client/src/App.js
+import React, { useState } from 'react';
+import TaskForm from './components/TaskForm';
+import TaskList from './components/TaskList';
+function App() {
+ const [tasks, setTasks] = useState([]);
+ const addTask = (taskName) => {
+ setTasks([...tasks, { name: taskName, status: 'Pending' }]);
+ };
+ const updateStatus = (index) => {
+ const updatedTasks = [...tasks];
+ updatedTasks[index].status =
+ updatedTasks[index].status === 'Pending' ? 'InProgress' : 'Completed';
+ setTasks(updatedTasks);
+ };
+ return (
+ <div className="App">
+ <TaskForm addTask={addTask} />
+ <TaskList tasks={tasks} updateStatus={updateStatus} />
+ </div>
+ );
+}
+export default App;

@@ -1,0 +1,123 @@
+------------------------------------------------------------------------------
+B.NO:244044              DEVELOP A LEAVE MANAGEMENT SYSTEM
+Ex NO:7
+------------------------------------------------------------------------------
+
+index.html:
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <title>Leave Management System</title>
+ <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+ <h1>Welcome to Leave Management System</h1>
+ <form action="http://localhost:4000/apply" method="POST">
+ <label for="employeeName">Employee Name:</label>
+ <input type="text" id="employeeName" name="employeeName" required> <br>
+<label for="leaveType">Leave Type:</label>
+ <select id="leaveType" name="leaveType" required>
+ <option value="vacation">Vacation</option>
+ <option value="sick">Sick Leave</option>
+ </select>
+<br>
+<label for="startDate">Start Date:</label>
+ <input type="date" id="startDate" name="startDate" required>
+ <br>
+<label for="endDate">End Date:</label>
+ <input type="date" id="endDate" name="endDate" required>
+ <br>
+<button type="submit">Submit</button>
+ </form>
+</body>
+</html>
+*******************************************************************************
+styles.css:
+body {
+ font-family: Arial, sans-serif;
+ text-align: center;
+margin: 50px;
+}
+h1 {
+ color: #333;
+}
+form {
+ margin: 20px auto;
+ width: 300px;
+border: 1px solid #333;
+ padding: 20px;
+}
+label {
+ display: block;
+margin-bottom: 5px;
+}
+input[type="text"],
+input[type="date"],
+select {
+ width: 100%;
+padding: 5px;
+margin-bottom: 10px;
+}
+button {
+ background-color: #333;
+color: #fff;
+border: none;
+padding: 10px 20px;
+ cursor: pointer;
+}
+*******************************************************************************
+server.js:
+const express = require('express');
+const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+//const ejs = require('ejs');
+const app = express();
+//app.set('view engine', 'ejs');
+app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ extended:false }));
+// Connect to MongoDB (replace with your MongoDB connection string)
+mongoose.connect('mongodb://127.0.0.1:27017/leave_management_system', {
+ useNewUrlParser: true,
+useUnifiedTopology: true,
+});
+mongoose.connection.on('open', () => {
+ // Start your server or perform database operations here
+ });
+// Define a LeaveRequest schema
+const leaveRequestSchema = new mongoose.Schema({
+ employeeName: String,
+ leaveType: String,
+ startDate: Date,
+ endDate: Date,
+});
+// Create a LeaveRequest model
+const LeaveRequest = mongoose.model('LeaveRequest',
+leaveRequestSchema);app.get('/', (req, res) => {
+ // Retrieve leave requests from MongoDB
+LeaveRequest.find({}, (err, leaveRequests) => {
+ if (err) {
+ console.error(err);
+ res.status(500).send('Internal Server Error');
+ } else {
+ res.render('index', { leaveRequests });
+ }
+ });
+});
+app.post('/apply', (req, res) => {
+ // Create and save a new leave request
+const newLeaveRequest = new LeaveRequest({
+ employeeName:req.body.employeeName,
+ leaveType:req.body.leaveType,
+ startDate:req.body.startDate,
+ endDate:req.body.endDate
+ });
+newLeaveRequest.save();
+res.end("Submitted");
+ });
+
+const port = process.env.PORT || 4000; // Use the provided port or default to 3000
+app.listen(port, () => {
+ console.log(`Server is running on http://localhost:${port}`);
+});

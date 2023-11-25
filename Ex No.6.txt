@@ -1,0 +1,292 @@
+-------------------------------------------------------------------------------
+B.NO:244044     CLASSIFIED WEB APPLICATION TO BUY AND SELL OLD PRODUCTS
+Ex NO:6
+-------------------------------------------------------------------------------
+
+#app.js
+document.addEventListener('DOMContentLoaded', () => {
+  const productList = document.getElementById('product-list');
+
+  // Function to fetch and display product listings
+  const fetchProducts = () => {
+    fetch('/api/products')
+      .then(response => response.json())
+      .then(products => {
+        productList.innerHTML = ''; // Clear existing list
+        products.forEach(product => {
+          const li = document.createElement('li');
+          li.textContent = `${product.title} - $${product.price}`;
+          
+          // Add a "Buy" button for each product
+          const actionButton = document.createElement('button');
+          if (product.status === 'purchased') {
+            actionButton.textContent = 'Purchased';
+            actionButton.disabled = true;
+          } else {
+            actionButton.textContent = 'Buy';
+            actionButton.addEventListener('click', () =>
+ buyProduct(product._id, actionButton));
+          }
+          
+          li.appendChild(actionButton);
+          productList.appendChild(li);
+        });
+      })
+      .catch(error => console.error('Error fetching products:', 
+error));
+  };
+  // Call the fetchProducts function initially and after 
+creating a listing
+  fetchProducts();
+
+  // Create a new product listing
+  const createListingButton = document.getElementById
+('create-listing-button');
+  createListingButton.addEventListener('click', () => {
+    const title = document.getElementById('title').value;
+    const description = document.getElementById('description')
+.value;
+    const price = document.getElementById('price').value;
+
+    const newData = {
+      title: title,
+      description: description,
+      price: price
+    };
+
+    fetch('/api/products', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newData)
+    })
+      .then(response => response.json())
+      .then(product => {
+        console.log('Product created:', product);
+        // Clear input fields
+        document.getElementById('title').value = '';
+        document.getElementById('description').value = '';
+        document.getElementById('price').value = '';
+
+        // Fetch and display products after creating a listing
+        fetchProducts();
+      })
+      .catch(error => console.error
+('Error creating product:', error));
+  });
+// Buy a product
+  const buyProduct = (productId, actionButton) => {
+    fetch(`/api/products/${productId}/buy`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    })
+    .then(response => response.json())
+    .then(updatedProduct => {
+      console.log('Product purchased:', updatedProduct);
+
+      // Update the button text to "Purchased" and disable it
+      actionButton.textContent = 'Purchased';
+      actionButton.disabled = true;
+      
+      // Optionally, you can add a
+ CSS class to style the 
+"Purchased" button differently
+      actionButton.classList.add('purchased-button');
+    })
+      .catch(error => console.error
+('Error purchasing product:',
+ error));
+  };
+
+  // Initial fetch and display of products
+  fetchProducts();
+});
+
+#index.html
+!DOCTYPE html>
+<html>
+<head>
+  <title>Classifieds App</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+  <h1>Welcome to Classifieds App</h1>
+
+  
+
+  <h2>Product Listings</h2>
+  <ul id="product-list"></ul>
+
+  <h2>Create a Listing</h2>
+  <form id="create-listing-form">
+    <label for="title">Title:</label>
+    <input type="text" id="title" required><br>
+    <label for="description">Description:</label>
+    <textarea id="description" required></textarea><br>
+    <label for="price">Price:</label>
+    <input type="number" id="price" required><br>
+    <button type="button" id="create-listing-button">
+Create Listing</button>
+  </form>
+
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
+Style.css
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+}
+
+h1 {
+  color: #333;
+}
+
+h2 {
+  color: #555;
+  margin-top: 20px;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid #ddd;
+  background-color: #f9f9f9;
+}
+
+label {
+  display: inline-block;
+  width: 100px;
+}
+
+input, textarea {
+  width: 300px;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+
+button {
+  background-color: #333;
+  color: #fff;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+}
+/* Style for the "Purchased" button */
+.purchased-button {
+  background-color: #ccc;
+  color: #888;
+  cursor: not-allowed;
+}
+
+Productuser.js
+const express = require('express');
+const router = express.Router();
+const Product = require('../models/Product');
+
+// Create a new product listing
+router.post('/', async (req, res) => {
+  try {
+    const newProduct = await Product.create(req.body);
+    res.json(newProduct);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Get all product listings
+router.get('/', async (req, res) => {
+  try {
+    const products = await Product.find();
+    res.json(products);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+// Update product status to mark as purchased
+router.put('/:productId/buy', async (req, res) => {
+  try {
+    const productId = req.params.productId;
+
+    // Find the product by ID and update its status or relevant fields
+    const updatedProduct = await Product.findByIdAndUpdate(
+      productId,
+      { $set: { status: 'purchased' } }, // Update
+ the status or relevant fields here
+      { new: true } // Return the updated product
+    );
+
+    if (!updatedProduct) {
+      return res.status(404).json({ message: 'Product not found' });
+    }
+
+    res.json(updatedProduct);
+  } catch (error) {
+    console.error('Error buying product:', error);
+    res.status(500).json({ message: 'An error occurred 
+while buying the product' });
+  }
+});
+module.exports = router;
+
+
+#user route.js
+const express = require('express');
+const router = express.Router();
+const User = require('../models/User');
+
+// User registration
+router.post('/register', async (req, res) => {
+  try {
+    const newUser = await User.create(req.body);
+    res.json(newUser);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+module.exports = router;
+
+
+#SERVER .JS
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const path = require('path'); // Import the 'path' module
+
+const app = express();
+
+
+// Middleware
+app.use(cors());
+app.use(bodyParser.json());
+
+// Connect to MongoDB
+mongoose.connect('mongodb://127.0.0.1:27017/classifieds', {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+});
+mongoose.connection.on('error', console.error.bind(console, 
+'MongoDB connection error:'));
+app.use(express.static(path.join(__dirname, 'public')));
+// Routes
+const userRoutes = require('./routes/userRoutes');
+const productRoutes = require('./routes/productRoutes');
+app.use('/api/users', userRoutes);
+app.use('/api/products', productRoutes);
+
+const PORT = process.env.PORT || 4000;
+app.listen(4000, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
